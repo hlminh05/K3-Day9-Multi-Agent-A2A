@@ -54,25 +54,19 @@ class OrderSellerAgent:
                 "occurred after each item's shipping limit."
             ),
             payload={
-                "order_id": order_id,
                 "order_status": order["order_status"],
-                "delivered_carrier_date": order["order_delivered_carrier_date"],
-                "items": [
-                    {
-                        "order_item_id": item.order_item_id,
-                        "seller_id": item.seller_id,
-                        "shipping_limit_date": str(item.shipping_limit_date),
-                    }
-                    for item in item_facts
-                ],
+                "item_count": len(item_facts),
+                "seller_count": len(seller_ids),
+                "carrier_handoff_after_any_shipping_limit": bool(late_seller_ids),
+                "late_seller_count": len(late_seller_ids),
             },
             schema={
                 "type": "object",
                 "properties": {
-                    "late_seller_ids": {"type": "array", "items": {"type": "string"}},
+                    "late_seller_count": {"type": "integer"},
                     "finding": {"type": "string"},
                 },
-                "required": ["late_seller_ids", "finding"],
+                "required": ["late_seller_count", "finding"],
             },
         )
         return OrderSellerHandoff(
@@ -88,7 +82,7 @@ class OrderSellerAgent:
             freight_total=sum((item.freight_value for item in item_facts), Decimal("0")),
             llm_review=review(
                 model_call,
-                {"late_seller_ids": list(late_seller_ids)},
+                {"late_seller_count": len(late_seller_ids)},
                 self._llm.model_name,
             ),
         )

@@ -124,6 +124,11 @@ tiên, policy version sai, chạy end-to-end
 evidence, giới hạn model và hard gate ZIP. Unit test dùng model double; lượt CLI
 nộp bài bắt buộc dùng OpenRouter API thật và metadata ghi token/thời gian gọi thực.
 
+Payload API được tối thiểu hóa: không gửi customer message, case/order/item/
+seller/payment ID, evidence ID, timestamp thô hoặc tổng tiền. Model chỉ nhận
+count, boolean và chênh lệch đối soát tối thiểu; dữ liệu nguồn đầy đủ chỉ tồn tại
+trong repository và trace local.
+
 API key chỉ nằm trong `.env` dưới tên `OPENROUTER_API_KEY`; `.env` bị Git ignore.
 Tên provider, endpoint, model ID và kích thước model được commit trong source.
 Mỗi API response phải trả đúng `model=qwen/qwen3-8b`; pipeline fail closed nếu

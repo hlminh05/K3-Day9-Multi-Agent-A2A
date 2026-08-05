@@ -58,10 +58,8 @@ class CoordinatorAgent:
                 "dependency order and keep artifact_writer after verifier."
             ),
             payload={
-                "case_id": case.case_id,
-                "order_id": case.order_id,
                 "customer_language": case.language,
-                "customer_message": case.message,
+                "workflow_type": "olist_ecommerce_dispute",
                 "required_dependency_order": expected_route,
             },
             schema={

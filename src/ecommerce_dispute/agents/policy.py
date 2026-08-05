@@ -74,6 +74,14 @@ class PolicyAgent:
         else:
             raise ValueError(f"Case {case.case_id} does not match EC_POLICY_V1")
 
+        refund_basis = (
+            "full_payment"
+            if issue in {"canceled_order_paid", "unavailable_order_paid"}
+            else "freight"
+            if issue in {"late_delivery_seller", "late_delivery_logistics"}
+            else "none"
+        )
+
         model_call = self._llm.invoke(
             agent_name=self.name,
             system_prompt=(
@@ -82,29 +90,27 @@ class PolicyAgent:
                 "payment; delivery within estimate with reconciled payment."
             ),
             payload={
-                "case_id": case.case_id,
                 "order_status": order.order_status,
-                "payment_total_brl": str(payment.payment_total),
+                "payment_positive": payment.payment_total > 0,
                 "payment_reconciled": payment.is_reconciled,
                 "split_payment": payment.is_split_payment,
                 "delivery_late": delivery.is_late,
                 "delivery_within_estimate": delivery.is_within_estimate,
-                "late_seller_ids": list(delivery.late_seller_ids),
-                "freight_total_brl": str(order.freight_total),
+                "late_seller_count": len(delivery.late_seller_ids),
             },
             schema={
                 "type": "object",
                 "properties": {
                     "primary_issue": {"type": "string"},
                     "cause_code": {"type": "string"},
-                    "recommended_refund_brl": {"type": "string"},
+                    "refund_basis": {"type": "string"},
                     "action": {"type": "string"},
                     "rationale": {"type": "string"},
                 },
                 "required": [
                     "primary_issue",
                     "cause_code",
-                    "recommended_refund_brl",
+                    "refund_basis",
                     "action",
                     "rationale",
                 ],
@@ -123,7 +129,7 @@ class PolicyAgent:
                 {
                     "primary_issue": issue,
                     "cause_code": cause,
-                    "recommended_refund_brl": str(refund),
+                    "refund_basis": refund_basis,
                     "action": action,
                 },
                 self._llm.model_name,

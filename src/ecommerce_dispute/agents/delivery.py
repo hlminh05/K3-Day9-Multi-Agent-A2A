@@ -28,9 +28,9 @@ class DeliveryAgent:
                 "Equal timestamps are within estimate."
             ),
             payload={
-                "order_id": order.order_id,
-                "delivered_customer_date": str(order.delivered_customer_date),
-                "estimated_delivery_date": str(order.estimated_delivery_date),
+                "both_dates_present": has_dates,
+                "actual_after_estimate": is_late,
+                "actual_within_estimate": is_within_estimate,
             },
             schema={
                 "type": "object",

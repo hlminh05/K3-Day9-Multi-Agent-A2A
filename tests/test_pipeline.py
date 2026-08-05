@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 import unittest
 import zipfile
@@ -98,6 +99,27 @@ class PipelineIntegrationTests(unittest.TestCase):
     def test_every_agent_invokes_qwen_gateway(self):
         self.assertEqual(300, self.metadata["run"]["llm"]["model_calls"])
         self.assertEqual("qwen/qwen3-8b", self.metadata["model"]["name"])
+
+    def test_api_payloads_are_anonymized(self):
+        forbidden_keys = {
+            "case_id",
+            "order_id",
+            "customer_message",
+            "seller_id",
+            "payment_values_brl",
+            "item_total_brl",
+            "freight_total_brl",
+            "payment_total_brl",
+            "delivered_carrier_date",
+            "delivered_customer_date",
+            "estimated_delivery_date",
+            "shipping_limit_date",
+            "evidence_ids",
+        }
+        for agent_name, payload in self.fake_llm.payloads:
+            self.assertTrue(forbidden_keys.isdisjoint(payload), agent_name)
+            serialized = json.dumps(payload, sort_keys=True)
+            self.assertIsNone(re.search(r"\b[0-9a-f]{32}\b", serialized), agent_name)
 
     def test_submission_zip_has_only_50_json_files(self):
         destination = self.temp_root / "submission.zip"

@@ -23,7 +23,7 @@
 | Policy engine | `agents/policy.py` | Order/payment/delivery | `PolicyDecision` | Hoàn thành |
 | Independent verification | `agents/verifier.py` | Draft và CSV gốc | accept/reject | Hoàn thành |
 | Artifact pipeline | `pipeline.py` | 50 verified result | output, trace, metadata, ZIP | Hoàn thành |
-| Tests | `tests/` | Unit và Olist fixture thật | 17 test | Hoàn thành |
+| Tests | `tests/` | Unit và Olist fixture thật | 18 test | Hoàn thành |
 
 ## 3. Kết quả bàn giao
 
@@ -44,7 +44,7 @@ python -X utf8 -m unittest discover -s tests -v
 python -X utf8 -m ecommerce_dispute.cli --root . --zip
 ```
 
-Kết quả mong đợi và thực tế: 17 test pass; CLI báo `case_count=50`,
+Kết quả mong đợi và thực tế: 18 test pass; CLI báo `case_count=50`,
 `trace_event_count=650` và `model_calls=300`.
 
 ## 4. Giải thích kỹ thuật
@@ -88,7 +88,7 @@ cho schema output. Order không có item vẫn có item và freight total bằng
 - **Lý do:** Model đáp ứng yêu cầu agent dùng LLM dưới 10B và hỗ trợ tiếng Việt,
   JSON/tool workflow. Policy là bảng điều kiện đóng nên phép tính/ID vẫn phải do
   code xác minh để ngăn hallucination và bảo đảm tái lập.
-- **Bằng chứng:** 17 test pass trên toàn bộ 50 case; metadata ghi 300 model call;
+- **Bằng chứng:** 18 test pass trên toàn bộ 50 case; metadata ghi 300 model call;
   evidence giả bị Verifier từ chối; output ZIP vượt qua hard gate.
 
 ## 6. Lỗi/blocker đã xử lý

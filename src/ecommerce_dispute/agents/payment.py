@@ -42,10 +42,8 @@ class PaymentAgent:
                 "A split payment has at least two rows; tolerance is 0.10 BRL."
             ),
             payload={
-                "order_id": order.order_id,
-                "item_total_brl": str(order.item_total),
-                "freight_total_brl": str(order.freight_total),
-                "payment_values_brl": [str(row.payment_value) for row in payments],
+                "payment_row_count": len(payments),
+                "absolute_difference_brl": str(abs(difference)),
                 "tolerance_brl": PAYMENT_TOLERANCE_BRL,
             },
             schema={

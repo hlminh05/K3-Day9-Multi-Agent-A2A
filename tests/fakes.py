@@ -15,6 +15,7 @@ class FakeLLMClient:
 
     def __init__(self) -> None:
         self.calls = 0
+        self.payloads: list[tuple[str, dict[str, Any]]] = []
 
     def invoke(
         self,
@@ -25,6 +26,7 @@ class FakeLLMClient:
         schema: dict[str, Any],
     ) -> LLMCallResult:
         self.calls += 1
+        self.payloads.append((agent_name, payload))
         if agent_name == "coordinator_agent":
             content = {
                 "route": payload["required_dependency_order"],
@@ -32,32 +34,21 @@ class FakeLLMClient:
                 "coordination_note": "dependency order accepted",
             }
         elif agent_name == "order_seller_agent":
-            carrier = self._timestamp(payload["delivered_carrier_date"])
-            late = []
-            for item in payload["items"]:
-                limit = self._timestamp(item["shipping_limit_date"])
-                if carrier and limit and carrier > limit and item["seller_id"] not in late:
-                    late.append(item["seller_id"])
-            content = {"late_seller_ids": late, "finding": "checked"}
-        elif agent_name == "payment_agent":
-            paid = sum(Decimal(value) for value in payload["payment_values_brl"])
-            expected = Decimal(payload["item_total_brl"]) + Decimal(
-                payload["freight_total_brl"]
-            )
             content = {
-                "is_reconciled": abs(paid - expected)
+                "late_seller_count": payload["late_seller_count"],
+                "finding": "checked",
+            }
+        elif agent_name == "payment_agent":
+            content = {
+                "is_reconciled": Decimal(payload["absolute_difference_brl"])
                 <= Decimal(payload["tolerance_brl"]),
-                "is_split_payment": len(payload["payment_values_brl"]) >= 2,
+                "is_split_payment": payload["payment_row_count"] >= 2,
                 "finding": "checked",
             }
         elif agent_name == "delivery_agent":
-            delivered = self._timestamp(payload["delivered_customer_date"])
-            estimated = self._timestamp(payload["estimated_delivery_date"])
             content = {
-                "is_late": bool(delivered and estimated and delivered > estimated),
-                "is_within_estimate": bool(
-                    delivered and estimated and delivered <= estimated
-                ),
+                "is_late": payload["actual_after_estimate"],
+                "is_within_estimate": payload["actual_within_estimate"],
                 "finding": "checked",
             }
         elif agent_name == "policy_agent":
@@ -87,54 +78,52 @@ class FakeLLMClient:
     @staticmethod
     def _policy(payload: dict[str, Any]) -> dict[str, Any]:
         status = payload["order_status"]
-        paid = Decimal(payload["payment_total_brl"])
-        freight = Decimal(payload["freight_total_brl"])
-        if status == "canceled" and paid > 0:
-            issue, cause, refund, action = (
+        if status == "canceled" and payload["payment_positive"]:
+            issue, cause, refund_basis, action = (
                 "canceled_order_paid",
                 "ORDER_CANCELED_AFTER_PAYMENT",
-                paid,
+                "full_payment",
                 "issue_full_refund",
             )
-        elif status == "unavailable" and paid > 0:
-            issue, cause, refund, action = (
+        elif status == "unavailable" and payload["payment_positive"]:
+            issue, cause, refund_basis, action = (
                 "unavailable_order_paid",
                 "ORDER_UNAVAILABLE_AFTER_PAYMENT",
-                paid,
+                "full_payment",
                 "issue_full_refund",
             )
-        elif payload["delivery_late"] and payload["late_seller_ids"]:
-            issue, cause, refund, action = (
+        elif payload["delivery_late"] and payload["late_seller_count"]:
+            issue, cause, refund_basis, action = (
                 "late_delivery_seller",
                 "SELLER_HANDOFF_AFTER_LIMIT",
-                freight,
+                "freight",
                 "refund_freight",
             )
         elif payload["delivery_late"]:
-            issue, cause, refund, action = (
+            issue, cause, refund_basis, action = (
                 "late_delivery_logistics",
                 "CARRIER_DELIVERED_AFTER_ESTIMATE",
-                freight,
+                "freight",
                 "refund_freight",
             )
         elif payload["split_payment"] and payload["payment_reconciled"]:
-            issue, cause, refund, action = (
+            issue, cause, refund_basis, action = (
                 "valid_split_payment",
                 "MULTIPLE_PAYMENTS_RECONCILED",
-                Decimal("0"),
+                "none",
                 "explain_valid_split_payment",
             )
         else:
-            issue, cause, refund, action = (
+            issue, cause, refund_basis, action = (
                 "unsupported_late_claim",
                 "DELIVERY_WITHIN_ESTIMATE",
-                Decimal("0"),
+                "none",
                 "reject_late_refund",
             )
         return {
             "primary_issue": issue,
             "cause_code": cause,
-            "recommended_refund_brl": str(refund),
+            "refund_basis": refund_basis,
             "action": action,
             "rationale": "policy checked",
         }

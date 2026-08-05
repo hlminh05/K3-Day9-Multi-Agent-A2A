@@ -75,6 +75,12 @@ class VerifierAgent:
         except (KeyError, TypeError, ValueError, IndexError) as exc:
             errors.append(f"malformed_output:{exc}")
         accepted = not errors
+        assessment = output.get("assessment") or {}
+        root_analysis = output.get("root_cause_analysis") or {}
+        ranked_causes = root_analysis.get("ranked_causes") or []
+        financial = output.get("financial_resolution") or {}
+        actions = output.get("resolution_actions") or []
+        evidence = output.get("evidence_ids") or []
         model_call = self._llm.invoke(
             agent_name=self.name,
             system_prompt=(
@@ -82,12 +88,20 @@ class VerifierAgent:
                 "refund/action/status align and evidence IDs have allowed prefixes."
             ),
             payload={
-                "case_id": case.case_id,
-                "assessment": output.get("assessment"),
-                "root_cause_analysis": output.get("root_cause_analysis"),
-                "evidence_ids": output.get("evidence_ids"),
-                "financial_resolution": output.get("financial_resolution"),
-                "resolution_actions": output.get("resolution_actions"),
+                "primary_issue": assessment.get("primary_issue"),
+                "case_status": assessment.get("case_status"),
+                "cause_code": ranked_causes[0].get("cause_code")
+                if ranked_causes
+                else None,
+                "evidence_count": len(evidence),
+                "evidence_prefixes_valid": all(
+                    isinstance(value, str)
+                    and value.split(":", 1)[0]
+                    in {"order", "item", "payment", "seller", "policy"}
+                    for value in evidence
+                ),
+                "refund_positive": financial.get("recommended_refund_brl", 0) > 0,
+                "action": actions[0] if actions else None,
             },
             schema={
                 "type": "object",
