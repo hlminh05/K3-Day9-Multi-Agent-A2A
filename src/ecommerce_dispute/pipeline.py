@@ -67,6 +67,7 @@ def run_pipeline(
     output_dir: Path | None = None,
     trace_path: Path | None = None,
     metadata_path: Path | None = None,
+    logging_dir: Path | None = None,
     llm_client: ModelGateway | None = None,
     progress_callback: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
@@ -74,6 +75,7 @@ def run_pipeline(
     outputs_path = output_dir or root / "output"
     trace_file = trace_path or root / "trace.jsonl"
     metadata_file = metadata_path or root / "metadata.json"
+    logging_path = logging_dir or root / "logging"
 
     load_dotenv(root / ".env")
     if MODEL_PARAMETER_SIZE_BILLION > MODEL_MAX_ALLOWED_BILLION:
@@ -113,6 +115,8 @@ def run_pipeline(
         _atomic_json(outputs_path / filename, output)
     trace_file.parent.mkdir(parents=True, exist_ok=True)
     trace.write_latest(trace_file)
+    logging_path.mkdir(parents=True, exist_ok=True)
+    trace.write_latest(logging_path / "trace.jsonl")
 
     distribution = Counter(
         output["assessment"]["primary_issue"] for _, output in resolved
@@ -153,6 +157,7 @@ def run_pipeline(
     }
     metadata_file.parent.mkdir(parents=True, exist_ok=True)
     _atomic_json(metadata_file, metadata)
+    _atomic_json(logging_path / "metadata.json", metadata)
     return metadata
 
 

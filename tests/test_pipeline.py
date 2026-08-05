@@ -27,12 +27,14 @@ class PipelineIntegrationTests(unittest.TestCase):
         cls.output = cls.temp_root / "output"
         cls.trace = cls.temp_root / "trace.jsonl"
         cls.metadata_path = cls.temp_root / "metadata.json"
+        cls.logging_dir = cls.temp_root / "logging"
         cls.fake_llm = FakeLLMClient()
         cls.metadata = run_pipeline(
             ROOT,
             output_dir=cls.output,
             trace_path=cls.trace,
             metadata_path=cls.metadata_path,
+            logging_dir=cls.logging_dir,
             llm_client=cls.fake_llm,
         )
 
@@ -99,6 +101,15 @@ class PipelineIntegrationTests(unittest.TestCase):
     def test_every_agent_invokes_qwen_gateway(self):
         self.assertEqual(300, self.metadata["run"]["llm"]["model_calls"])
         self.assertEqual("qwen/qwen3-8b", self.metadata["model"]["name"])
+
+    def test_logging_mirrors_canonical_artifacts(self):
+        self.assertEqual(
+            self.trace.read_bytes(), (self.logging_dir / "trace.jsonl").read_bytes()
+        )
+        self.assertEqual(
+            self.metadata_path.read_bytes(),
+            (self.logging_dir / "metadata.json").read_bytes(),
+        )
 
     def test_api_payloads_are_anonymized(self):
         forbidden_keys = {

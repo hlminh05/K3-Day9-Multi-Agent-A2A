@@ -20,7 +20,7 @@
 | Independent verification | `src/ecommerce_dispute/agents/verifier.py` | Draft và CSV gốc | Accept/reject | Hoàn thành |
 | OpenRouter gateway | `src/ecommerce_dispute/llm.py` | Prompt đã ẩn danh | Structured JSON | Hoàn thành |
 | Artifact pipeline | `src/ecommerce_dispute/pipeline.py` | 50 verified result | Output, trace, metadata, ZIP | Hoàn thành |
-| Tests | `tests/` | Unit và Olist fixture thật | 18 test | Hoàn thành |
+| Tests | `tests/` | Unit và Olist fixture thật | 19 test | Hoàn thành |
 
 ## 3. Kết quả theo vai trò
 
@@ -32,7 +32,7 @@
 - Coordinator là agent cha duy nhất; worker không gọi nhau và không ghi file.
 - Model được khóa cứng tại `qwen/qwen3-8b`, 8.2B tham số, dưới giới hạn 10B.
 - OpenRouter smoke test đã xác nhận key, exact model identity và structured JSON.
-- 18/18 test pass, bao gồm model hard gate, false evidence, anonymized API
+- 19/19 test pass, bao gồm model hard gate, false evidence, anonymized API
   payload, 50-case integration và ZIP hard gate.
 - `output.zip` chứa thư mục `output/` với `EC_001.json` đến `EC_050.json`,
   không chứa `.gitkeep`.
@@ -95,7 +95,7 @@ thiểu.
 - **Phương án chọn:** Hybrid với `qwen/qwen3-8b` qua OpenRouter.
 - **Lý do:** Qwen3-8B đáp ứng giới hạn 10B và structured workflow; code vẫn giữ
   CSV, phép tính tiền và policy làm nguồn sự thật để ngăn hallucination.
-- **Bằng chứng:** 18 test pass; provider không thể thay bằng model lớn; evidence
+- **Bằng chứng:** 19 test pass; provider không thể thay bằng model lớn; evidence
   giả bị Verifier từ chối; payload không chứa ID 32 ký tự.
 
 ## 6. Lỗi hoặc blocker đã xử lý

@@ -139,4 +139,6 @@ provider trả model khác và không cấu hình `openrouter/auto` hay fallback
 - `output/EC_001.json` ... `output/EC_050.json`: kết quả đã verify.
 - `trace.jsonl`: trace thật của lượt chạy mới nhất.
 - `metadata.json`: model, kích thước, framework, runtime và thống kê run.
+- `logging/trace.jsonl`, `logging/metadata.json`: mirror đồng nhất để tương thích
+  với skeleton repo; bản canonical theo README vẫn nằm ở root.
 - `output.zip`: đúng 50 JSON để nộp, không chứa source, secret hay audit file.

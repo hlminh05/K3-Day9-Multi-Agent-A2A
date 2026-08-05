@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-08-05T03:22:47.485562+00:00",
+  "policy_version": "EC_POLICY_V1",
+  "model": {
+    "name": "none-deterministic-policy-engine",
+    "parameter_size_billion": 0.0,
+    "usage": "No LLM; deterministic CSV reconciliation and policy rules",
+    "within_10b_limit": true
+  },
+  "agents": [
+    {
+      "name": "coordinator_agent",
+      "model": "none-deterministic-policy-engine",
+      "parameter_size_billion": 0.0
+    },
+    {
+      "name": "order_seller_agent",
+      "model": "none-deterministic-policy-engine",
+      "parameter_size_billion": 0.0
+    },
+    {
+      "name": "payment_agent",
+      "model": "none-deterministic-policy-engine",
+      "parameter_size_billion": 0.0
+    },
+    {
+      "name": "delivery_agent",
+      "model": "none-deterministic-policy-engine",
+      "parameter_size_billion": 0.0
+    },
+    {
+      "name": "policy_agent",
+      "model": "none-deterministic-policy-engine",
+      "parameter_size_billion": 0.0
+    },
+    {
+      "name": "verifier_agent",
+      "model": "none-deterministic-policy-engine",
+      "parameter_size_billion": 0.0
+    }
+  ],
+  "framework": "python-standard-library-agent-handoffs",
+  "runtime": {
+    "python": "3.12.3",
+    "implementation": "CPython",
+    "platform": "Windows-11-10.0.22621-SP0"
+  },
+  "run": {
+    "run_id": "d6b39084-368a-4a2f-b3ec-e7c65ce14db4",
+    "case_count": 50,
+    "trace_event_count": 600,
+    "issue_distribution": {
+      "canceled_order_paid": 8,
+      "late_delivery_logistics": 8,
+      "late_delivery_seller": 8,
+      "unavailable_order_paid": 8,
+      "unsupported_late_claim": 9,
+      "valid_split_payment": 9
+    }
+  }
+}
