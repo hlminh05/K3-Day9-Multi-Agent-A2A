@@ -163,5 +163,5 @@ def create_submission_zip(output_dir: Path, destination: Path) -> None:
     temporary = destination.with_suffix(destination.suffix + ".tmp")
     with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in files:
-            archive.write(path, arcname=path.name)
+            archive.write(path, arcname=f"output/{path.name}")
     temporary.replace(destination)

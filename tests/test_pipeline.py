@@ -126,7 +126,9 @@ class PipelineIntegrationTests(unittest.TestCase):
         create_submission_zip(self.output, destination)
         with zipfile.ZipFile(destination) as archive:
             names = archive.namelist()
-        self.assertEqual([f"EC_{number:03d}.json" for number in range(1, 51)], names)
+        self.assertEqual(
+            [f"output/EC_{number:03d}.json" for number in range(1, 51)], names
+        )
 
 
 if __name__ == "__main__":
